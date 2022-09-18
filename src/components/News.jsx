@@ -1,12 +1,13 @@
 import React, { Component } from "react";
 import NewItems from "./NewItems";
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 export class News extends Component {
   static defaultProps = {
     country: "in",
     category: "general",
-    pageSize: 15,
+    pageSize: 6,
   };
 
   static propTypes = {
@@ -15,9 +16,16 @@ export class News extends Component {
     category: PropTypes.string,
   };
 
-  constructor() {
-    super();
-    this.state = { articles: [], page: 1 };
+  capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
+  constructor(props) {
+    super(props);
+    this.state = { articles: [], page: 1, totalResults: 0 };
+    document.title = `NewsMonkey - ${this.capitalizeFirstLetter(
+      this.props.category
+    )}`;
   }
 
   updateNews = async () => {
@@ -45,55 +53,78 @@ export class News extends Component {
     this.updateNews();
   };
 
+  fetchMoreData = async () => {
+    this.setState({ page: this.state.page + 1 });
+    const url = `
+    https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=cdd43373c21d4bf88fb5560efc837517&page=${this.state.page}&pageSize=${this.props.pageSize}`;
+    let data = await fetch(url);
+    let parsedData = await data.json();
+    this.setState({
+      articles: this.state.articles.concat(parsedData.articles),
+      totalResults: parsedData.totalResults,
+    });
+  };
+
   render() {
     return (
-      <div className="container ">
-        <h1 className="text-center my-3">NewsMonkey - Top Headlines</h1>
-        <div className="row">
-          {this.state.articles.map((e) => {
-            return (
-              <div className="col-md-4 my-3">
-                <NewItems
-                  title={e.title ? e.title.slice(0, 60) : "No title"}
-                  description={
-                    e.description
-                      ? e.description.slice(0, 100)
-                      : "No Description"
-                  }
-                  imageUrl={e.urlToImage}
-                  newsUrl={e.url}
-                  author={e.author}
-                  date={e.publishedAt}
-                  source={e.source.name}
-                />
-              </div>
-            );
-          })}
-
-          {/* Buttons */}
-          <div className="container d-flex justify-content-between">
-            <button
-              disabled={this.state.page <= 1}
-              type="button"
-              className="btn btn-dark"
-              onClick={this.handlePreviousClick}
-            >
-              &larr; Previous
-            </button>
-            <button
-              disabled={
-                this.state.page >
-                Math.ceil(this.state.totalResults / this.props.pageSize)
-              }
-              type="button"
-              className="btn btn-dark"
-              onClick={this.handleNextClick}
-            >
-              Next &rarr;
-            </button>
+      <>
+        <h1 className="text-center my-3">
+          NewsMonkey - {`${this.capitalizeFirstLetter(this.props.category)}`}{" "}
+          Headlines
+        </h1>
+        <InfiniteScroll
+          dataLength={this.state.articles.length}
+          next={this.fetchMoreData}
+          hasMore={this.state.articles.length !== this.state.totalResults}
+          // loader={<h4>Loading...</h4>}
+        >
+          <div className="container">
+            <div className="row">
+              {this.state.articles.map((e) => {
+                return (
+                  <div className="col-md-4 my-3" key={e.url}>
+                    <NewItems
+                      title={e.title ? e.title.slice(0, 50) : "No title"}
+                      description={
+                        e.description
+                          ? e.description.slice(0, 80)
+                          : "No Description"
+                      }
+                      imageUrl={e.urlToImage}
+                      newsUrl={e.url}
+                      author={e.author}
+                      date={e.publishedAt}
+                      source={e.source.name}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            {/* Buttons */}
+            {/* <div className="container d-flex justify-content-between">
+              <button
+                disabled={this.state.page <= 1}
+                type="button"
+                className="btn btn-dark"
+                onClick={this.handlePreviousClick}
+              >
+                &larr; Previous
+              </button>
+              <button
+                disabled={
+                  this.state.page >
+                  Math.ceil(this.state.totalResults / this.props.pageSize)
+                }
+                type="button"
+                className="btn btn-dark"
+                onClick={this.handleNextClick}
+              >
+                Next &rarr;
+              </button>
+            </div> */}
           </div>
-        </div>
-      </div>
+        </InfiniteScroll>
+      </>
     );
   }
 }
