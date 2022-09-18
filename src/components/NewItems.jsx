@@ -6,7 +6,7 @@ export class NewItems extends Component {
       this.props;
     return (
       <div>
-        <div className="card">
+        <div className="card  border-primary  mb-3">
           <img
             // Default image
             src={

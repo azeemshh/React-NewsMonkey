@@ -72,7 +72,7 @@ export class News extends Component {
   render() {
     return (
       <>
-        <h1 className="text-center my-3" style={{ color: "white" }}>
+        <h1 className="text-center" style={{ color: "white", marginTop: "90px" }}>
           NewsMonkey - {`${this.capitalizeFirstLetter(this.props.category)}`}{" "}
           Headlines
         </h1>
@@ -86,7 +86,7 @@ export class News extends Component {
             <div className="row">
               {this.state.articles.map((e) => {
                 return (
-                  <div className="col-md-4 my-3" key={e.url}>
+                  <div className="col-md-4 my-4" key={e.url}>
                     <NewItems
                       title={e.title ? e.title.slice(0, 50) : "No title"}
                       description={
